@@ -16,9 +16,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -38,11 +42,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
-
-    TileAdapter tileAdapter;
-    ListView imageList;
-    ArrayList<String> imageAddress;// address of photo stored inside
-
+    private static final String TAG = "ScaleFactorValue";
+    private TileAdapter tileAdapter;
+    private GridView imageList;
+    private ArrayList<String> imageAddress;// address of photo stored inside
+    private final ExecutorService e1 = Executors.newSingleThreadScheduledExecutor();
+    private ScaleGestureDetector scaleGestureDetector;
+    private int imageNum = 4;
 
     private ArrayList<String> getImageAddress() {
         ArrayList<String> temp = new ArrayList<String>();
@@ -60,8 +66,6 @@ public class MainActivity extends AppCompatActivity {
         return temp;
     }
 
-
-    private ExecutorService e1 = Executors.newSingleThreadScheduledExecutor();
     public class TileAdapter extends BaseAdapter{
         class ViewHolder {
             int position;
@@ -124,15 +128,54 @@ public class MainActivity extends AppCompatActivity {
                 "android.permission.WRITE_EXTERNAL_STORAGE"
         };
         requestPermissions(permissions, 200);
-        imageList = findViewById(R.id.images);
+        imageList = (GridView)findViewById(R.id.images);
         imageAddress = getImageAddress();
         tileAdapter = new TileAdapter();
-
+        imageList.setNumColumns(imageNum);
         imageList.setAdapter(tileAdapter);
         imageList.setOnItemClickListener((parent, view, position, id)->{//actually we only need position
             Intent intent = new Intent(this, Full_Image.class);
             intent.putExtra("address", imageAddress.get(position));//send address to fullImage activity
             this.startActivity(intent);
+        });
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleGestureDetector.OnScaleGestureListener() {
+            float temp = imageNum;
+            @Override
+            public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+                try{
+                    temp = temp / scaleGestureDetector.getScaleFactor();//always return the x times of scale factor
+                }catch (ArithmeticException e){
+                    Log.w(TAG, "Zero:" + scaleGestureDetector.getScaleFactor());
+                }
+
+                if(temp < 1){
+                    temp = 1;// at least one image per column
+                }else if(temp > 8){
+                    temp = 8;// at most 8 images per column
+                }
+                imageList.setNumColumns(((int)temp));
+                Log.i(TAG, "scale = " + scaleGestureDetector.getScaleFactor());
+                Log.i(TAG, "num = " + temp);
+                return true;//was false, set to true to reset the scale factor
+            }
+
+            @Override
+            public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector) {
+
+                return true;
+            }
+
+            @Override
+            public void onScaleEnd(ScaleGestureDetector scaleGestureDetector) {
+
+            }
+        });
+        imageList.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                scaleGestureDetector.onTouchEvent(motionEvent);
+                return false;
+            }
         });
     }
 
