@@ -48,13 +48,14 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> imageAddress;// address of photo stored inside
     private final ExecutorService e1 = Executors.newSingleThreadScheduledExecutor();
     private ScaleGestureDetector scaleGestureDetector;
-    private int imageNum = 4;
+    private final int imageNum = 4;
 
     private ArrayList<String> getImageAddress() {
         ArrayList<String> temp = new ArrayList<String>();
         Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
-        try (Cursor cursor = getContentResolver().query(uri, null, null, null, null)) {
+        try (Cursor cursor = getContentResolver().query(uri, null, null, null,
+                MediaStore.Images.Media.DATE_ADDED +" DESC")) {// follow the date to sort the image, just as what
             if (cursor == null || cursor.getCount() <= 0) return null; // found not image
             while (cursor.moveToNext())// found image
             {
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             return i;
         }
 
-        @SuppressLint({"StaticFieldLeak", "SetTextI18n"})
+
         @Override
         public View getView(int i, View view, ViewGroup viewGroup) {
             ViewHolder vh;
@@ -154,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
                     temp = 8;// at most 8 images per column
                 }
                 imageList.setNumColumns(((int)temp));
-                Log.i(TAG, "scale = " + scaleGestureDetector.getScaleFactor());
-                Log.i(TAG, "num = " + temp);
+               // Log.i(TAG, "scale = " + scaleGestureDetector.getScaleFactor());
+                //Log.i(TAG, "num = " + temp);
                 return true;//was false, set to true to reset the scale factor
             }
 
@@ -179,5 +180,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        //savedInstanceState.putString("PHOTO_DETAIL_PATH", mPath);
+    }
 }
