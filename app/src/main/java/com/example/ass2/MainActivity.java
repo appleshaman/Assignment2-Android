@@ -43,7 +43,6 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "ScaleFactorValue";
-    private TileAdapter tileAdapter;
     private GridView imageList;
     private ArrayList<String> imageAddress;// address of photo stored inside
     private final ExecutorService e1 = Executors.newSingleThreadScheduledExecutor();
@@ -51,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private final int imageNum = 4;
 
     private ArrayList<String> getImageAddress() {
+
         ArrayList<String> temp = new ArrayList<String>();
         Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         }
         @Override
         public int getCount() {
-            return 100;
+            return imageAddress.size();
         }
 
         @Override
@@ -108,9 +108,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 final Bitmap bmp;
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 10;
-                bmp = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(imageAddress.get(vh.position), options),400, 400);
+                bmp = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(imageAddress.get(vh.position)),400, 400);
 
                 if(vh.position == i){
                     vh.image.post(()->vh.image.setImageBitmap(bmp));
@@ -131,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(permissions, 200);
         imageList = (GridView)findViewById(R.id.images);
         imageAddress = getImageAddress();
-        tileAdapter = new TileAdapter();
+        TileAdapter tileAdapter = new TileAdapter();
         imageList.setNumColumns(imageNum);
         imageList.setAdapter(tileAdapter);
         imageList.setOnItemClickListener((parent, view, position, id)->{//actually we only need position
@@ -155,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                     temp = 8;// at most 8 images per column
                 }
                 imageList.setNumColumns(((int)temp));
-               // Log.i(TAG, "scale = " + scaleGestureDetector.getScaleFactor());
+                Log.i(TAG, "scale = " + scaleGestureDetector.getScaleFactor());
                 //Log.i(TAG, "num = " + temp);
                 return true;//was false, set to true to reset the scale factor
             }
@@ -180,9 +178,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle savedInstanceState) {
-        super.onSaveInstanceState(savedInstanceState);
-        //savedInstanceState.putString("PHOTO_DETAIL_PATH", mPath);
-    }
+//    @Override
+//    protected void onSaveInstanceState(Bundle savedInstanceState) {
+//        super.onSaveInstanceState(savedInstanceState);
+//        //savedInstanceState.putString("PHOTO_DETAIL_PATH", mPath);
+//    }
 }

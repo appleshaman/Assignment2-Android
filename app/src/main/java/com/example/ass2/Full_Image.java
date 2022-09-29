@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
@@ -20,7 +21,9 @@ import java.util.concurrent.Executors;
 
 public class Full_Image extends AppCompatActivity {
     private static final String TAG = "ImageScaleValue";
+
     String address;
+
     ImageView image;
     private ScaleGestureDetector scaleGestureDetector;
     private ExecutorService e1 = Executors.newSingleThreadScheduledExecutor();
@@ -28,12 +31,12 @@ public class Full_Image extends AppCompatActivity {
     private int mode = 0;//0: initial state, 1: drag, 2: zoom
     private final int drag = 1;
     private final int zoom = 2;
-    private final int move = 3;
 
-    private Matrix matrix = new Matrix();//
-    private PointF start = new PointF();//initial coordinates of
+
+    private Matrix matrix = new Matrix();
+    private PointF start = new PointF();
     private Matrix currentMatrix = new Matrix();
-    private float scaleTimes;
+
     private long dragTime;
 
     @Override
@@ -115,9 +118,26 @@ public class Full_Image extends AppCompatActivity {
         e1.submit(() -> {
             final Bitmap bmp;
             BitmapFactory.Options options = new BitmapFactory.Options();
-            bmp = BitmapFactory.decodeFile(address);
+            options.inSampleSize = 2;
+            bmp = BitmapFactory.decodeFile(address, options);
             image.post(() -> image.setImageBitmap(bmp));
+
+
+
         });
 
     }
+    public int calculateInSampleSize(BitmapFactory.Options options,int reqWidth,int reqHeight)
+    {
+        int inSampleSize = 1;
+        int rawWidth = options.outWidth;
+        int rawHeight = options.outHeight;
+        while ((rawWidth / inSampleSize >= reqWidth) && (rawHeight / inSampleSize >= reqHeight))
+        {
+            inSampleSize = inSampleSize *2;
+        }
+
+        return inSampleSize;
+    }
+
 }
